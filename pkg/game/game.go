@@ -6,9 +6,16 @@ import (
 	"github.com/joetifa2003/bullet-hell/pkg/vector"
 )
 
+const (
+	GAME_WIDTH  = 1280
+	GAME_HEIGHT = 720
+)
+
 type Entity interface {
 	Update(dt float32)
 	Draw()
+	DrawScreen()
+
 	SetIndex(idx int)
 	Index() int
 	SetGame(g *Game)
@@ -26,6 +33,7 @@ type BaseEntity struct {
 
 func (b *BaseEntity) Update(dt float32) {}
 func (b *BaseEntity) Draw()             {}
+func (b *BaseEntity) DrawScreen()       {}
 func (b *BaseEntity) SetIndex(idx int)  { b.index = idx }
 func (b *BaseEntity) Index() int        { return b.index }
 func (b *BaseEntity) SetGame(g *Game)   { b.game = g }
@@ -74,6 +82,54 @@ func (g *Game) Draw() {
 	}
 }
 
+func (g *Game) DrawScreen() {
+	for _, e := range g.entities {
+		e.DrawScreen()
+	}
+}
+
+func (g *Game) Loop() {
+	rl.InitWindow(GAME_WIDTH, GAME_HEIGHT, "raylib [core] example - basic window")
+	defer rl.CloseWindow()
+	// rl.SetTargetFPS(60)
+
+	player := NewPlayer(vector.New(100, 100))
+	g.AddEntity(player)
+	g.AddEntity(NewBlock(vector.New(0, 0), vector.New(800, 50)))
+	g.AddEntity(NewBlock(vector.Zero(), vector.New(50, 800)))
+
+	lightTexture := rl.LoadRenderTexture(GAME_WIDTH, GAME_HEIGHT)
+
+	for !rl.WindowShouldClose() {
+		rl.BeginDrawing()
+		rl.ClearBackground(rl.RayWhite)
+		dt := rl.GetFrameTime()
+
+		g.Update(dt)
+
+		rl.BeginMode2D(*g.camera)
+		g.Draw()
+		rl.EndMode2D()
+
+		g.DrawScreen()
+
+		rl.BeginTextureMode(lightTexture)
+		rl.ClearBackground(rl.Fade(rl.Black, 0.4))
+
+		circleCenter := vector.New(player.Pos().X()+25, player.Pos().Y()-25).RL()
+		circleCenter = rl.GetWorldToScreen2D(circleCenter, *g.camera)
+		rl.DrawCircleGradient(int32(circleCenter.X), int32(circleCenter.Y), 50, rl.Fade(rl.White, 0.5), rl.Fade(rl.White, 0.8))
+		rl.EndTextureMode()
+
+		rl.BeginBlendMode(rl.BlendMultiplied)
+		rl.DrawTexture(lightTexture.Texture, 0, 0, rl.White)
+		rl.EndBlendMode()
+
+		rl.DrawFPS(10, 10)
+		rl.EndDrawing()
+	}
+}
+
 func (g *Game) MoveCollide(collidable Collidable, vel vector.Vector) (vector.Vector, bool) {
 	collided := false
 	for _, e := range g.entities {
@@ -89,8 +145,9 @@ func (g *Game) MoveCollide(collidable Collidable, vel vector.Vector) (vector.Vec
 	return vel, collided
 }
 
-func NewGame(camera *rl.Camera2D) *Game {
+func NewGame() *Game {
+	camera := rl.NewCamera2D(rl.NewVector2(GAME_WIDTH/2, GAME_HEIGHT/2), rl.NewVector2(0, 0), 0, 1)
 	return &Game{
-		camera: camera,
+		camera: &camera,
 	}
 }
