@@ -3,7 +3,7 @@ module github.com/joetifa2003/bullet-hell
 go 1.21.0
 
 require (
-	github.com/gen2brain/raylib-go/raylib v0.0.0-20231123174446-48309e2407b7
+	github.com/gen2brain/raylib-go/raylib v0.0.0-20240125111008-83d871a38f28
 	github.com/pkg/profile v1.7.0
 	github.com/zyedidia/generic v1.2.1
 )

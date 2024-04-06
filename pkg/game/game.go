@@ -11,6 +11,13 @@ const (
 	GAME_HEIGHT = 720
 )
 
+type ScreenLayer int
+
+const (
+	Layer1 ScreenLayer = iota
+	LayerEnd
+)
+
 type Entity interface {
 	Update(dt float32)
 	Draw()
@@ -38,11 +45,18 @@ func (b *BaseEntity) SetIndex(idx int)  { b.index = idx }
 func (b *BaseEntity) Index() int        { return b.index }
 func (b *BaseEntity) SetGame(g *Game)   { b.game = g }
 
+type ScreenTexture struct {
+	rl.RenderTexture2D
+	BlendMode rl.BlendMode
+}
+
 type Game struct {
 	camera           *rl.Camera2D
 	entities         []Entity
 	entitiesToRemove []Entity
 	entitiesToAdd    []Entity
+
+	screenTextures []*ScreenTexture
 }
 
 func (g *Game) AddEntity(e Entity) {
@@ -98,7 +112,15 @@ func (g *Game) Loop() {
 	g.AddEntity(NewBlock(vector.New(0, 0), vector.New(800, 50)))
 	g.AddEntity(NewBlock(vector.Zero(), vector.New(50, 800)))
 
-	lightTexture := rl.LoadRenderTexture(GAME_WIDTH, GAME_HEIGHT)
+	for i := 0; i < int(LayerEnd); i++ {
+		g.screenTextures = append(g.screenTextures, &ScreenTexture{RenderTexture2D: rl.LoadRenderTexture(GAME_WIDTH, GAME_HEIGHT)})
+	}
+
+	darkenTexture := rl.LoadRenderTexture(GAME_WIDTH, GAME_HEIGHT)
+
+	rl.BeginTextureMode(darkenTexture)
+	rl.ClearBackground(rl.Fade(rl.Black, 0.5))
+	rl.EndTextureMode()
 
 	for !rl.WindowShouldClose() {
 		rl.BeginDrawing()
@@ -113,17 +135,24 @@ func (g *Game) Loop() {
 
 		g.DrawScreen()
 
-		rl.BeginTextureMode(lightTexture)
-		rl.ClearBackground(rl.Fade(rl.Black, 0.4))
+		rl.DrawTexture(darkenTexture.Texture, 0, 0, rl.White)
+		for _, t := range g.screenTextures {
+			rl.BeginBlendMode(t.BlendMode)
+			rl.DrawTexture(t.Texture, 0, 0, rl.White)
+			rl.EndBlendMode()
+		}
 
-		circleCenter := vector.New(player.Pos().X()+25, player.Pos().Y()-25).RL()
-		circleCenter = rl.GetWorldToScreen2D(circleCenter, *g.camera)
-		rl.DrawCircleGradient(int32(circleCenter.X), int32(circleCenter.Y), 50, rl.Fade(rl.White, 0.5), rl.Fade(rl.White, 0.8))
-		rl.EndTextureMode()
-
-		rl.BeginBlendMode(rl.BlendMultiplied)
-		rl.DrawTexture(lightTexture.Texture, 0, 0, rl.White)
-		rl.EndBlendMode()
+		// rl.BeginTextureMode(lightTexture)
+		// rl.ClearBackground(rl.Fade(rl.Black, 0.4))
+		//
+		// circleCenter := vector.New(player.Pos().X()+25, player.Pos().Y()-25).RL()
+		// circleCenter = rl.GetWorldToScreen2D(circleCenter, *g.camera)
+		// rl.DrawCircleGradient(int32(circleCenter.X), int32(circleCenter.Y), 50, rl.Fade(rl.White, 0.5), rl.Fade(rl.White, 0.8))
+		// rl.EndTextureMode()
+		//
+		// rl.BeginBlendMode(rl.BlendMultiplied)
+		// rl.DrawTexture(lightTexture.Texture, 0, 0, rl.White)
+		// rl.EndBlendMode()
 
 		rl.DrawFPS(10, 10)
 		rl.EndDrawing()
@@ -145,9 +174,19 @@ func (g *Game) MoveCollide(collidable Collidable, vel vector.Vector) (vector.Vec
 	return vel, collided
 }
 
+func (g *Game) GetRenderTexture(layer ScreenLayer) *ScreenTexture {
+	return g.screenTextures[layer]
+}
+
+func (g *Game) WorldToScreen(pos vector.Vector) vector.Vector {
+	return vector.FromRL(rl.GetWorldToScreen2D(pos.RL(), *g.camera))
+}
+
 func NewGame() *Game {
 	camera := rl.NewCamera2D(rl.NewVector2(GAME_WIDTH/2, GAME_HEIGHT/2), rl.NewVector2(0, 0), 0, 1)
-	return &Game{
+	g := &Game{
 		camera: &camera,
 	}
+
+	return g
 }

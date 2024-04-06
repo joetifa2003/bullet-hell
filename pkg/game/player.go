@@ -68,6 +68,17 @@ func (p *Player) Draw() {
 	rl.DrawRectangle(int32(p.pos.X()), int32(p.pos.Y()), int32(p.size.X()), int32(p.size.Y()), rl.Yellow)
 }
 
+func (p *Player) DrawScreen() {
+	texture := p.game.GetRenderTexture(Layer1)
+	texture.BlendMode = rl.BlendAdditive
+	pos := p.game.WorldToScreen(p.pos).Add(vector.New(25, -25))
+
+	rl.BeginTextureMode(texture.RenderTexture2D)
+	rl.ClearBackground(rl.Blank)
+	rl.DrawCircle(int32(pos.X()), int32(pos.Y()), 50, rl.Fade(rl.White, 0.64))
+	rl.EndTextureMode()
+}
+
 func (p *Player) Pos() vector.Vector { return p.pos }
 
 func (p *Player) CollisionShape() rl.Rectangle {
