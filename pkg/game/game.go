@@ -2,6 +2,7 @@ package game
 
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
+
 	"github.com/joetifa2003/bullet-hell/pkg/collision"
 	"github.com/joetifa2003/bullet-hell/pkg/vector"
 )
@@ -22,6 +23,7 @@ type Entity interface {
 	Update(dt float32)
 	Draw()
 	DrawScreen()
+	Load()
 
 	SetIndex(idx int)
 	Index() int
@@ -39,11 +41,18 @@ type BaseEntity struct {
 }
 
 func (b *BaseEntity) Update(dt float32) {}
-func (b *BaseEntity) Draw()             {}
-func (b *BaseEntity) DrawScreen()       {}
-func (b *BaseEntity) SetIndex(idx int)  { b.index = idx }
-func (b *BaseEntity) Index() int        { return b.index }
-func (b *BaseEntity) SetGame(g *Game)   { b.game = g }
+
+func (b *BaseEntity) Draw() {}
+
+func (b *BaseEntity) DrawScreen() {}
+
+func (b *BaseEntity) SetIndex(idx int) { b.index = idx }
+
+func (b *BaseEntity) Index() int { return b.index }
+
+func (b *BaseEntity) SetGame(g *Game) { b.game = g }
+
+func (b *BaseEntity) Load() {}
 
 type ScreenTexture struct {
 	rl.RenderTexture2D
@@ -68,6 +77,10 @@ func (g *Game) RemoveEntity(e Entity) {
 }
 
 func (g *Game) Update(dt float32) {
+	if rl.IsKeyPressed(rl.KeyF11) {
+		rl.ToggleFullscreen()
+	}
+
 	for _, e := range g.entities {
 		e.Update(dt)
 	}
@@ -80,6 +93,7 @@ func (g *Game) Update(dt float32) {
 	}
 
 	for i, e := range g.entitiesToAdd {
+		e.Load()
 		e.SetGame(g)
 		e.SetIndex(len(g.entities) + i)
 	}
@@ -117,6 +131,7 @@ func (g *Game) Loop() {
 	}
 
 	darkenTexture := rl.LoadRenderTexture(GAME_WIDTH, GAME_HEIGHT)
+	defer rl.UnloadRenderTexture(darkenTexture)
 
 	rl.BeginTextureMode(darkenTexture)
 	rl.ClearBackground(rl.Fade(rl.Black, 0.5))

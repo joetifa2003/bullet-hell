@@ -1,12 +1,26 @@
 package game
 
 import (
+	"bytes"
+	_ "embed"
+	"image/png"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
+
 	"github.com/joetifa2003/bullet-hell/pkg/vector"
 )
 
+//go:embed raylib_logo.png
+var logo []byte
+
+type TextureImage struct {
+	img rl.Image
+	tex rl.Texture2D
+}
+
 type Player struct {
 	BaseEntity
+	texture    rl.Texture2D
 	pos        vector.Vector
 	vel        vector.Vector
 	size       vector.Vector
@@ -19,6 +33,14 @@ func NewPlayer(pos vector.Vector) *Player {
 		size:       vector.New(50, 50),
 		shootTimer: NewTimer(0.2),
 	}
+}
+
+func (p *Player) Load() {
+	img, err := png.Decode(bytes.NewBuffer(logo))
+	if err != nil {
+		panic(err)
+	}
+	_ = img
 }
 
 func (p *Player) Update(dt float32) {
