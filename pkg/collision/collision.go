@@ -2,6 +2,7 @@ package collision
 
 import (
 	rl "github.com/gen2brain/raylib-go/raylib"
+
 	"github.com/joetifa2003/bullet-hell/pkg/vector"
 )
 
@@ -85,7 +86,6 @@ func MoveCollide(rect rl.Rectangle, dp vector.Vector, otherRects ...rl.Rectangle
 
 func lineIntersect(l1, l2 Line) (float32, bool) {
 	det := (l1.End.X()-l1.Start.X())*(l2.End.Y()-l2.Start.Y()) - (l1.End.Y()-l1.Start.Y())*(l2.End.X()-l2.Start.X())
-
 	if det == 0 {
 		return 0, false
 	}

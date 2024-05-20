@@ -134,7 +134,7 @@ func (g *Game) Loop() {
 	defer rl.UnloadRenderTexture(darkenTexture)
 
 	rl.BeginTextureMode(darkenTexture)
-	rl.ClearBackground(rl.Fade(rl.Black, 0.5))
+	rl.ClearBackground(rl.Fade(rl.Black, 0.34))
 	rl.EndTextureMode()
 
 	for !rl.WindowShouldClose() {
@@ -180,7 +180,7 @@ func (g *Game) MoveCollide(collidable Collidable, vel vector.Vector) (vector.Vec
 		if e, ok := e.(Collidable); ok {
 			var c bool
 			vel, c = collision.MoveCollide(collidable.CollisionShape(), vel, e.CollisionShape())
-			if c && !collided {
+			if c {
 				collided = true
 			}
 		}

@@ -6,7 +6,9 @@ type Timer struct {
 }
 
 func (t *Timer) Update(dt float32) {
-	t.passed += dt
+	if t.passed < t.target {
+		t.passed += dt
+	}
 }
 
 func (t *Timer) Done() bool {

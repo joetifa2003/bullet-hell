@@ -97,7 +97,7 @@ func (p *Player) DrawScreen() {
 
 	rl.BeginTextureMode(texture.RenderTexture2D)
 	rl.ClearBackground(rl.Blank)
-	rl.DrawCircle(int32(pos.X()), int32(pos.Y()), 50, rl.Fade(rl.White, 0.64))
+	rl.DrawCircleGradient(int32(pos.X()), int32(pos.Y()), 50, rl.Fade(rl.White, 0.7), rl.Fade(rl.White, 0.4))
 	rl.EndTextureMode()
 }
 
